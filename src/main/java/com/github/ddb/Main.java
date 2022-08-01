@@ -22,8 +22,6 @@ public class Main {
             InputStream content = entity.getContent();
             String result = IOUtils.toString(content, StandardCharsets.UTF_8);
             System.out.println(result);
-            // do something useful with the response body
-            // and ensure it is fully consumed
             EntityUtils.consume(entity);
         }
     }
