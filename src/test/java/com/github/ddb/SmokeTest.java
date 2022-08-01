@@ -1,2 +1,9 @@
-package com.github.ddb;public class SmokeTest {
+package com.github.ddb;
+
+import org.junit.jupiter.api.Test;
+
+public class SmokeTest {
+    @Test
+    public void test(){
+    }
 }
