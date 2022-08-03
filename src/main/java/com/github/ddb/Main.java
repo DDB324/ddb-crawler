@@ -8,7 +8,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -31,7 +30,9 @@ public class Main {
             System.out.println(link);
             System.out.println(linkPool.size());
             //判断这个链接是否处理过，如果处理过就进入下一次循环，没有处理就将它放到处理池
-            if (processedPool.contains(link)) continue;
+            if (processedPool.contains(link)) {
+                continue;
+            }
             processedPool.add(link);
 
             //发送请求获得html
@@ -63,7 +64,7 @@ public class Main {
     }
 
     private static void getArticleText(String link, Document doc) {
-        Elements articleTag = doc.select("article") ;
+        Elements articleTag = doc.select("article");
         if (!articleTag.isEmpty()) {
             Elements h1 = articleTag.select("h1");
 //            System.out.println(link);
