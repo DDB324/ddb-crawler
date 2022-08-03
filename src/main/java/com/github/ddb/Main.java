@@ -7,13 +7,22 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+        List<String> linkPool = new ArrayList<>();
         CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet("https://sina.cn");
         try (CloseableHttpResponse response = httpclient.execute(httpGet)) {
@@ -21,7 +30,13 @@ public class Main {
             HttpEntity entity = response.getEntity();
             InputStream content = entity.getContent();
             String result = IOUtils.toString(content, StandardCharsets.UTF_8);
-            System.out.println(result);
+            Document doc = Jsoup.parse(result);
+            Elements aTags = doc.select("a");
+            for (Element aTag :
+                    aTags) {
+                linkPool.add(String.valueOf(aTag));
+                System.out.println(aTag);
+            }
             EntityUtils.consume(entity);
         }
     }
