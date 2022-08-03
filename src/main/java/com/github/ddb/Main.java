@@ -34,9 +34,14 @@ public class Main {
             Elements aTags = doc.select("a");
             for (Element aTag :
                     aTags) {
-                linkPool.add(String.valueOf(aTag));
-                System.out.println(aTag);
+                String href = aTag.attr("href");
+                if(href.contains("sina.cn")){
+                    linkPool.add(href);
+                    System.out.println(href);
+                    System.out.println("-------");
+                }
             }
+
             EntityUtils.consume(entity);
         }
     }
