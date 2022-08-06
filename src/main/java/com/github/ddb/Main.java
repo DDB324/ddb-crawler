@@ -18,9 +18,12 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) throws IOException, SQLException {
+        String jdbcUrl = "jdbc:h2:file:/Users/jiangdaoran/IdeaProjects/ddb-crawler/news";
+        Connection connection = DriverManager.getConnection(jdbcUrl, "root", "root");
         List<String> linkPool = new ArrayList<>();
         Set<String> processedPool = new HashSet<>();
         linkPool.add("https://sina.cn");
@@ -47,8 +50,8 @@ public class Main {
             //发送请求获得html
             Document doc = httpGetAndParseHtml(link);
 
-            //获取页面的article标签的h1标签的内容
-            getArticleText(link, doc);
+            //将页面的内容，url存入数据库
+            putNewsContentInToDatabase(doc, connection, link);
 
             //获取页面中的所有a标签，将符合要求的加入链接池。要做个限制，不然没完没了了。
             if (linkPool.size() == 0) {
@@ -56,6 +59,7 @@ public class Main {
             }
         }
     }
+
     private static Document httpGetAndParseHtml(String link) throws IOException {
         //构造请求并发送
         CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -71,13 +75,20 @@ public class Main {
         }
     }
 
-    private static void getArticleText(String link, Document doc) {
+    private static void putNewsContentInToDatabase(Document doc, Connection connection, String link) throws SQLException {
         Elements articleTag = doc.select("article");
         if (!articleTag.isEmpty()) {
-            Elements h1 = articleTag.select("h1");
-            //将内容储存到数据库中
-            System.out.println(h1.text());
-            System.out.println("----");
+            String title = articleTag.select("h1").stream().map(Element::text).collect(Collectors.joining("\n"));
+            String newsContent = articleTag.select("p").stream().map(Element::text).collect(Collectors.joining("\n"));
+            //将标题，内容，链接储存到数据库中
+            //id不用传，会自动生成
+            String sql = "insert into news (url,title,content,created_at,modified_at) values (?,?,?,now(),now())"
+            try (PreparedStatement statement = connection.prepareStatement(sql)){
+                statement.setString(1,link);
+                statement.setString(2,title);
+                statement.setString(3,newsContent);
+                statement.executeUpdate();
+            }
         }
     }
 
