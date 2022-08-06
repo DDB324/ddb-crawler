@@ -16,13 +16,22 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.sql.*;
 import java.util.*;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, SQLException {
         List<String> linkPool = new ArrayList<>();
         Set<String> processedPool = new HashSet<>();
         linkPool.add("https://sina.cn");
+//        while(判断链接池的个数){
+//            获取链接池的第一个链接；
+//            判断链接有没有被处理；
+//            没有被处理就访问链接获取a标签，并且查看它是否有article标签；
+//            从链接池中删除这个链接；
+//            将这个链接加入到处理过的链接池中；
+//        }
+
         while (!linkPool.isEmpty()) {
 
             //从链接池中取出一个链接
@@ -47,7 +56,6 @@ public class Main {
             }
         }
     }
-
     private static Document httpGetAndParseHtml(String link) throws IOException {
         //构造请求并发送
         CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -67,7 +75,7 @@ public class Main {
         Elements articleTag = doc.select("article");
         if (!articleTag.isEmpty()) {
             Elements h1 = articleTag.select("h1");
-//            System.out.println(link);
+            //将内容储存到数据库中
             System.out.println(h1.text());
             System.out.println("----");
         }
