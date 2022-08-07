@@ -1,5 +1,6 @@
 package com.github.ddb;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.CookieSpecs;
@@ -20,6 +21,7 @@ import java.sql.*;
 import java.util.stream.Collectors;
 
 public class Main {
+    @SuppressFBWarnings("DMI_CONSTANT_DB_PASSWORD")
     public static void main(String[] args) throws IOException, SQLException {
         String jdbcUrl = "jdbc:h2:file:/Users/jiangdaoran/IdeaProjects/ddb-crawler/news";
         Connection connection = DriverManager.getConnection(jdbcUrl, "root", "root");
