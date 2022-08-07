@@ -45,7 +45,7 @@ public class Main {
             if (processedPool.contains(link)) {
                 continue;
             }
-            processedPool.add(link);
+            addLinkIntoProcessedDatabase(processedPool, link, connection);
 
             //发送请求获得html
             Document doc = httpGetAndParseHtml(link);
@@ -55,8 +55,17 @@ public class Main {
 
             //获取页面中的所有a标签，将符合要求的加入链接池。要做个限制，不然没完没了了。
             if (linkPool.size() == 0) {
-                addSatisfyConditionLinks(linkPool, doc);
+                addSatisfyConditionLinksIntoDatabase(linkPool, doc, connection);
             }
+        }
+    }
+
+    private static void addLinkIntoProcessedDatabase(Set<String> processedPool, String link, Connection connection) throws SQLException {
+        processedPool.add(link);
+        String sql = "insert into LINKS_ALREADY_PROCESSED (link) values (?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, link);
+            statement.executeUpdate();
         }
     }
 
@@ -82,23 +91,28 @@ public class Main {
             String newsContent = articleTag.select("p").stream().map(Element::text).collect(Collectors.joining("\n"));
             //将标题，内容，链接储存到数据库中
             //id不用传，会自动生成
-            String sql = "insert into news (url,title,content,created_at,modified_at) values (?,?,?,now(),now())"
-            try (PreparedStatement statement = connection.prepareStatement(sql)){
-                statement.setString(1,link);
-                statement.setString(2,title);
-                statement.setString(3,newsContent);
+            String sql = "insert into news (url,title,content,created_at,modified_at) values (?,?,?,now(),now())";
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                statement.setString(1, link);
+                statement.setString(2, title);
+                statement.setString(3, newsContent);
                 statement.executeUpdate();
             }
         }
     }
 
-    private static void addSatisfyConditionLinks(List<String> linkPool, Document doc) {
+    private static void addSatisfyConditionLinksIntoDatabase(List<String> linkPool, Document doc, Connection connection) throws SQLException {
         Elements aTags = doc.select("a");
         for (Element aTag :
                 aTags) {
             String href = aTag.attr("href");
             if (satisfyConditionLink(href)) {
                 linkPool.add(href);
+                String sql = "insert into LINKS_TO_BE_PROCESSED (link) values (?)";
+                try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                    statement.setString(1, href);
+                    statement.executeUpdate();
+                }
             }
         }
     }
