@@ -17,56 +17,84 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
-import java.util.*;
 import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) throws IOException, SQLException {
         String jdbcUrl = "jdbc:h2:file:/Users/jiangdaoran/IdeaProjects/ddb-crawler/news";
         Connection connection = DriverManager.getConnection(jdbcUrl, "root", "root");
-        List<String> linkPool = new ArrayList<>();
-        Set<String> processedPool = new HashSet<>();
-        linkPool.add("https://sina.cn");
-//        while(判断链接池的个数){
-//            获取链接池的第一个链接；
-//            判断链接有没有被处理；
-//            没有被处理就访问链接获取a标签，并且查看它是否有article标签；
-//            从链接池中删除这个链接；
-//            将这个链接加入到处理过的链接池中；
-//        }
 
-        while (!linkPool.isEmpty()) {
+        //获取链接池的链接个数，不为0就继续循环
+        while (getLinksNumberFromLinksPoolDatabase(connection) != 0) {
 
-            //从链接池中取出一个链接
-            String link = linkPool.remove(linkPool.size() - 1);
+            //获取链接池的第一个链接，如果没有就退出循环
+            String link = getFirstLinkFromLinksPoolDatabase(connection);
             System.out.println(link);
-            System.out.println(linkPool.size());
-            //判断这个链接是否处理过，如果处理过就进入下一次循环，没有处理就将它放到处理池
-            if (processedPool.contains(link)) {
+            if (link == null) {
+                break;
+            }
+
+            //从链接池中删除这个链接
+            removeLinkFromLinksPoolDatabase(link, connection);
+
+            //判断链接有没有被处理，如果处理过了就进入下一次循环
+            if (isLinkAlreadyProcessed(link, connection)) {
                 continue;
             }
-            addLinkIntoProcessedDatabase(processedPool, link, connection);
+            //将这个链接加到处理过的链接池中
+            addLinkIntoProcessedDatabase(link, connection);
 
-            //发送请求获得html
+            //对链接进行处理
             Document doc = httpGetAndParseHtml(link);
-
-            //将页面的内容，url存入数据库
-            putNewsContentInToDatabase(doc, connection, link);
-
-            //获取页面中的所有a标签，将符合要求的加入链接池。要做个限制，不然没完没了了。
-            if (linkPool.size() == 0) {
-                addSatisfyConditionLinksIntoDatabase(linkPool, doc, connection);
+            //限制下加入的链接，不然没完没了
+            if (getLinksNumberFromLinksPoolDatabase(connection) == 0) {
+                addSatisfyConditionLinksIntoDatabase(doc, connection);
             }
+            //访问链接获取a标签和article内容，将内容存到数据库
+            putNewsContentInToDatabase(doc, connection, link);
         }
     }
 
-    private static void addLinkIntoProcessedDatabase(Set<String> processedPool, String link, Connection connection) throws SQLException {
-        processedPool.add(link);
-        String sql = "insert into LINKS_ALREADY_PROCESSED (link) values (?)";
+    private static void removeLinkFromLinksPoolDatabase(String link, Connection connection) throws SQLException {
+        insertLinkToDatabase("delete from LINKS_TO_BE_PROCESSED where link=?", connection, link);
+    }
+
+    private static boolean isLinkAlreadyProcessed(String link, Connection connection) throws SQLException {
+        String sql = "select count(*) from LINKS_ALREADY_PROCESSED where link=? limit 1";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, link);
-            statement.executeUpdate();
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1) != 0;
+            }
         }
+        return false;
+    }
+
+    private static String getFirstLinkFromLinksPoolDatabase(Connection connection) throws SQLException {
+        String sql = "select link from LINKS_TO_BE_PROCESSED limit 1";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString(1);
+            }
+        }
+        return null;
+    }
+
+    private static int getLinksNumberFromLinksPoolDatabase(Connection connection) throws SQLException {
+        String sql = "select count(*) from LINKS_TO_BE_PROCESSED";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    private static void addLinkIntoProcessedDatabase(String link, Connection connection) throws SQLException {
+        insertLinkToDatabase("insert into LINKS_ALREADY_PROCESSED (link) values (?)", connection, link);
     }
 
     private static Document httpGetAndParseHtml(String link) throws IOException {
@@ -101,19 +129,21 @@ public class Main {
         }
     }
 
-    private static void addSatisfyConditionLinksIntoDatabase(List<String> linkPool, Document doc, Connection connection) throws SQLException {
+    private static void addSatisfyConditionLinksIntoDatabase(Document doc, Connection connection) throws SQLException {
         Elements aTags = doc.select("a");
         for (Element aTag :
                 aTags) {
             String href = aTag.attr("href");
             if (satisfyConditionLink(href)) {
-                linkPool.add(href);
-                String sql = "insert into LINKS_TO_BE_PROCESSED (link) values (?)";
-                try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                    statement.setString(1, href);
-                    statement.executeUpdate();
-                }
+                insertLinkToDatabase("insert into LINKS_TO_BE_PROCESSED (link) values (?)", connection, href);
             }
+        }
+    }
+
+    private static void insertLinkToDatabase(String sql, Connection connection, String href) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, href);
+            statement.executeUpdate();
         }
     }
 
