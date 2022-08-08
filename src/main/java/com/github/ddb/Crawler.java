@@ -20,7 +20,7 @@ import java.sql.*;
 import java.util.stream.Collectors;
 
 public class Crawler {
-    DatabaseAccessObject dao = new DatabaseAccessObject();
+    private final CrawlerDao dao = new JdbcCrawlerDao();
 
     private void run() throws SQLException, IOException {
         String link;
