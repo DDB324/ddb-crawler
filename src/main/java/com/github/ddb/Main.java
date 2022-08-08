@@ -25,16 +25,10 @@ public class Main {
     public static void main(String[] args) throws IOException, SQLException {
         String jdbcUrl = "jdbc:h2:file:/Users/jiangdaoran/IdeaProjects/ddb-crawler/news";
         Connection connection = DriverManager.getConnection(jdbcUrl, "root", "root");
-
-        //获取链接池的链接个数，不为0就继续循环
-        while (getLinksNumberFromLinksPoolDatabase(connection) != 0) {
-
-            //获取链接池的第一个链接，如果没有就退出循环
-            String link = getFirstLinkFromLinksPoolDatabase(connection);
+        String link;
+        //获取链接池的第一个链接，不为null就进入循环
+        while ((link = getFirstLinkFromLinksPoolDatabase(connection)) != null) {
             System.out.println(link);
-            if (link == null) {
-                break;
-            }
 
             //从链接池中删除这个链接
             removeLinkFromLinksPoolDatabase(link, connection);

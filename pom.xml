@@ -99,6 +99,24 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>6.3.3</version>
+                <configuration>
+                    <url>jdbc:h2:file:/Users/jiangdaoran/IdeaProjects/ddb-crawler/news</url>
+                    <user>root</user>
+                    <password>root</password>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.h2database</groupId>
+                        <artifactId>h2</artifactId>
+                        <!--添加这个驱动，要与上面的依赖相同，就不会产生冲突了，也可能在下一个版本，可以试一试-->
+                        <version>1.4.199</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
                 <version>4.7.0.0</version>
