@@ -20,8 +20,8 @@ import java.sql.*;
 import java.util.stream.Collectors;
 
 public class Crawler {
-    private final CrawlerDao dao = new JdbcCrawlerDao();
-//    private final CrawlerDao dao = new MyBatisCrawlerDao();
+//    private final CrawlerDao dao = new JdbcCrawlerDao();
+    private final CrawlerDao dao = new MyBatisCrawlerDao();
 
     private void run() throws SQLException, IOException {
         String link;
