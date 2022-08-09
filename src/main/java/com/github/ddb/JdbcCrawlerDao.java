@@ -19,20 +19,25 @@ public class JdbcCrawlerDao implements CrawlerDao {
 
     @Override
     public void removeLinkFromLinksPoolDatabase(String link) throws SQLException {
-        insertLinkToDatabase("delete from LINKS_TO_BE_PROCESSED where link=?", link);
+        String sql = "delete from LINKS_TO_BE_PROCESSED where link=?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, link);
+            statement.executeUpdate();
+        }
     }
 
+
     @Override
-    public boolean isLinkAlreadyProcessed(String link) throws SQLException {
+    public int getSpecifiedLinkNumberFromProcessedDatabase(String link) throws SQLException {
         String sql = "select count(*) from LINKS_ALREADY_PROCESSED where link=? limit 1";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, link);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getInt(1) != 0;
+                return resultSet.getInt(1);
             }
         }
-        return false;
+        return 0;
     }
 
     @Override
@@ -60,31 +65,31 @@ public class JdbcCrawlerDao implements CrawlerDao {
     }
 
     @Override
-    public void insertLinkIntoProcessedDatabase(String link) throws SQLException {
-        insertLinkToDatabase("insert into LINKS_ALREADY_PROCESSED (link) values (?)", link);
+    public void insertLinkIntoLinksPoolDatabase(String link) throws SQLException {
+        String sql = "insert into LINKS_ALREADY_PROCESSED (link) values (?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, link);
+            statement.executeUpdate();
+        }
     }
 
     @Override
-    public void insertContentIntoNewsDatabase(String link, String title, String newsContent) throws SQLException {
+    public void insertContentIntoNewsDatabase(String link, String title, String content) throws SQLException {
         String sql = "insert into news (url,title,content,created_at,modified_at) values (?,?,?,now(),now())";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, link);
             statement.setString(2, title);
-            statement.setString(3, newsContent);
+            statement.setString(3, content);
             statement.executeUpdate();
         }
     }
 
     @Override
-    public void insertLinkToDatabase(String sql, String href) throws SQLException {
+    public void insertLinkToProcessedDatabase(String link) throws SQLException {
+        String sql = "insert into LINKS_TO_BE_PROCESSED (link) values (?)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, href);
+            statement.setString(1, link);
             statement.executeUpdate();
         }
-    }
-
-    @Override
-    public void insertLinkToAlreadyDatabase(String link) throws SQLException {
-        insertLinkToDatabase("insert into LINKS_TO_BE_PROCESSED (link) values (?)", link);
     }
 }

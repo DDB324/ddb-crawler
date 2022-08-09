@@ -32,11 +32,11 @@ public class Crawler {
             dao.removeLinkFromLinksPoolDatabase(link);
 
             //判断链接有没有被处理，如果处理过了就进入下一次循环
-            if (dao.isLinkAlreadyProcessed(link)) {
+            if (isLinkAlreadyProcessed(link)) {
                 continue;
             }
             //将这个链接加到处理过的链接池中
-            dao.insertLinkIntoProcessedDatabase(link);
+            dao.insertLinkIntoLinksPoolDatabase(link);
 
             //对链接进行处理
             Document doc = httpGetAndParseHtml(link);
@@ -51,6 +51,10 @@ public class Crawler {
 
     public static void main(String[] args) throws IOException, SQLException {
         new Crawler().run();
+    }
+
+    public boolean isLinkAlreadyProcessed(String link) throws SQLException {
+        return dao.getSpecifiedLinkNumberFromProcessedDatabase(link) != 0;
     }
 
     private static Document httpGetAndParseHtml(String link) throws IOException {
@@ -86,7 +90,7 @@ public class Crawler {
                 aTags) {
             String link = aTag.attr("href");
             if (satisfyConditionLink(link)) {
-                dao.insertLinkToAlreadyDatabase(link);
+                dao.insertLinkToProcessedDatabase(link);
             }
         }
     }
