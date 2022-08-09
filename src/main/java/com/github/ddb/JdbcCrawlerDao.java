@@ -66,7 +66,7 @@ public class JdbcCrawlerDao implements CrawlerDao {
 
     @Override
     public void insertLinkIntoLinksPoolDatabase(String link) throws SQLException {
-        String sql = "insert into LINKS_ALREADY_PROCESSED (link) values (?)";
+        String sql = "insert into LINKS_TO_BE_PROCESSED (link) values (?)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, link);
             statement.executeUpdate();
@@ -85,8 +85,8 @@ public class JdbcCrawlerDao implements CrawlerDao {
     }
 
     @Override
-    public void insertLinkToProcessedDatabase(String link) throws SQLException {
-        String sql = "insert into LINKS_TO_BE_PROCESSED (link) values (?)";
+    public void insertLinkIntoProcessedDatabase(String link) throws SQLException {
+        String sql = "insert into LINKS_ALREADY_PROCESSED (link) values (?)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, link);
             statement.executeUpdate();

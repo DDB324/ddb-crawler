@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 public class Crawler {
     private final CrawlerDao dao = new JdbcCrawlerDao();
+//    private final CrawlerDao dao = new MyBatisCrawlerDao();
 
     private void run() throws SQLException, IOException {
         String link;
@@ -35,8 +36,9 @@ public class Crawler {
             if (isLinkAlreadyProcessed(link)) {
                 continue;
             }
+
             //将这个链接加到处理过的链接池中
-            dao.insertLinkIntoLinksPoolDatabase(link);
+            dao.insertLinkIntoProcessedDatabase(link);
 
             //对链接进行处理
             Document doc = httpGetAndParseHtml(link);
@@ -90,7 +92,7 @@ public class Crawler {
                 aTags) {
             String link = aTag.attr("href");
             if (satisfyConditionLink(link)) {
-                dao.insertLinkToProcessedDatabase(link);
+                dao.insertLinkIntoLinksPoolDatabase(link);
             }
         }
     }

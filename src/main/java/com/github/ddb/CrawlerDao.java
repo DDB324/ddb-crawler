@@ -15,5 +15,5 @@ public interface CrawlerDao {
 
     void insertContentIntoNewsDatabase(String link, String title, String content) throws SQLException;
 
-    void insertLinkToProcessedDatabase(String link) throws SQLException;
+    void insertLinkIntoProcessedDatabase(String link) throws SQLException;
 }
