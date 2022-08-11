@@ -33,6 +33,6 @@
         values (#{link})
     </insert>
     <insert id="insertContentIntoNews" parameterType="com.github.ddb.News">
-        insert into news (url,title,content,created_at,modified_at) values (#{url},#{title},#{content},now(),now())
+        insert into NEWS (url,title,content,created_at,modified_at) values (#{url},#{title},#{content},now(),now())
     </insert>
 </mapper>
