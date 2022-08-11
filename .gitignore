@@ -5,6 +5,7 @@ out/
 target/
 *.iml
 *.db
+mysql-data/
 # Eclipse
 .classpath
 .project
