@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.ddb.MyBatisMapper">
+    <delete id="removeLinkFromLinksPool" parameterType="String">
+        delete from LINKS_TO_BE_PROCESSED where link=#{link}
+    </delete>
+    <select id="getFirstLinkFromLinksPool" resultType="String">
+        select link from LINKS_TO_BE_PROCESSED limit 1
+    </select>
+    <select id="getLinkNumber" parameterType="HashMap" resultType="int">
+        select count(*) from
+        <if test="tableName == 'LINKS_TO_BE_PROCESSED'">
+            LINKS_TO_BE_PROCESSED
+        </if>
+        <if test="tableName == 'LINKS_ALREADY_PROCESSED'">
+            LINKS_ALREADY_PROCESSED
+        </if>
+        <if test="link != null">
+            where link=#{link} limit 1
+        </if>
+    </select>
+    <insert id="insertLink" parameterType="HashMap">
+        insert into
+        <if test="tableName == 'LINKS_TO_BE_PROCESSED'">
+            LINKS_TO_BE_PROCESSED
+        </if>
+        <if test="tableName == 'LINKS_ALREADY_PROCESSED'">
+            LINKS_ALREADY_PROCESSED
+        </if>
+        (link)
+        values (#{link})
+    </insert>
+    <insert id="insertContentIntoNews" parameterType="com.github.ddb.News">
+        insert into news (url,title,content,created_at,modified_at) values (#{url},#{title},#{content},now(),now())
+    </insert>
+</mapper>
