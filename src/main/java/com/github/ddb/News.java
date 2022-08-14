@@ -1,10 +1,31 @@
 package com.github.ddb;
 
+import java.time.Instant;
+
 public class News {
     private Integer id;
     private String url;
     private String content;
     private String title;
+
+    private Instant createdAt;
+    private Instant modifiedAt;
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getModifiedAt() {
+        return modifiedAt;
+    }
+
+    public void setModifiedAt(Instant modifiedAt) {
+        this.modifiedAt = modifiedAt;
+    }
 
     public News(String url, String title, String content) {
         this.url = url;
